@@ -14,7 +14,7 @@ Base URL:
 https://gahjnpeomhmkengufdrb.supabase.co/rest/v1/teste_tecnico
 ```
 
-A `apiKey` necessária para autenticação será enviada via WhatsApp. Todas as requisições devem incluir essa chave nos headers, conforme o padrão da API Supabase:
+A `apiKey` necessária para autenticação será enviada via WhatsApp. Todas as requisições devem incluir essa chave nos headers:
 
 ```http
 apikey: SUA_API_KEY
@@ -32,9 +32,27 @@ Cada registro possui o seguinte formato:
   "created_at": "2026-08-31T21:13:49.341778+00:00",
   "title": "teste",
   "status": 1,
-  "motivo": "motivo"
+  "motivo": null
 }
 ```
+
+### Status e regras de validação
+
+Os únicos valores permitidos para `status` são:
+
+| Status | Descrição |
+|---:|---|
+| `0` | Aguardando verificação |
+| `1` | Aprovado |
+| `2` | Reprovado |
+
+Regras para o campo `motivo`:
+
+- Quando `status` for `2` (**Reprovado**), o campo `motivo` é obrigatório.
+- Quando `status` for `1` (**Aprovado**), o campo `motivo` não deve ser enviado ou deve ser `null`.
+- Para `status` `0` (**Aguardando verificação**), o motivo não é obrigatório.
+
+Essas validações devem ser aplicadas antes de salvar localmente e antes de enviar dados à API.
 
 ## Requisitos funcionais
 
@@ -52,12 +70,7 @@ Cada registro possui o seguinte formato:
 
 Utilize o pacote `provider` para gerenciar o estado da tela.
 
-A solução deve manter, de forma clara e organizada, os estados de:
-
-- Lista de verificações;
-- Carregamento;
-- Erros;
-- Operações pendentes de sincronização.
+A solução deve manter, de forma clara e organizada, os estados de lista, carregamento, erros e operações pendentes de sincronização.
 
 ## Suporte offline
 
@@ -76,8 +89,6 @@ Quando a conexão for restabelecida:
 - Falhas na sincronização devem ser tratadas sem perda dos dados locais.
 
 ## Comunicação com a API
-
-Implemente corretamente as requisições HTTP:
 
 | Operação | Método | Endpoint |
 |---|---:|---|
@@ -99,8 +110,6 @@ A aplicação deve tratar corretamente a conversão dos dados entre API, banco l
 
 ## Organização esperada
 
-Uma estrutura possível para o projeto:
-
 ```text
 lib/
 ├── models/
@@ -117,7 +126,7 @@ lib/
 
 ## Critérios de avaliação
 
-- Funcionamento correto do CRUD;
+- Funcionamento correto do CRUD e das regras de status;
 - Uso adequado do `provider`;
 - Persistência local com `sqflite`;
 - Sincronização de operações pendentes quando houver conexão;
