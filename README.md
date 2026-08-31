@@ -2,6 +2,17 @@
 
 Desenvolva um aplicativo Flutter simples para gerenciamento de verificações.
 
+## Entrega
+
+A solução deve ser desenvolvida a partir deste repositório.
+
+1. Clone o repositório.
+2. Crie uma branch para a implementação, por exemplo: `feat/gerenciador-verificacoes`.
+3. Desenvolva a solução nessa branch.
+4. Abra um Pull Request da sua branch para a branch `main`.
+
+O Pull Request deve conter uma descrição breve da implementação, incluindo as decisões tomadas para persistência local e sincronização offline.
+
 ## Objetivo
 
 O aplicativo deverá possuir uma única tela que exibe uma lista de verificações obtidas de uma API. Também deve permitir criar, visualizar, editar e excluir verificações, com suporte a funcionamento offline.
@@ -132,4 +143,5 @@ lib/
 - Sincronização de operações pendentes quando houver conexão;
 - Organização e legibilidade do código;
 - Tratamento de erros e estados da interface;
-- Qualidade na conversão de dados entre JSON, Dart e SQLite.
+- Qualidade na conversão de dados entre JSON, Dart e SQLite;
+- Organização do histórico de commits e clareza do Pull Request.
