@@ -1,147 +1,28 @@
-# Teste Técnico — Flutter
+# Gerenciador de Verificações
 
-Desenvolva um aplicativo Flutter simples para gerenciamento de verificações.
+App Flutter feito pro teste técnico da Construmarket: uma tela só, pra criar, ver, editar e excluir "verificações", com suporte a uso offline.
 
-## Entrega
+## Como rodar
 
-A solução deve ser desenvolvida a partir deste repositório.
+1. `flutter pub get`
+2. Cria um arquivo `.env` na raiz do projeto (usa o `.env.example` como base) e cola a apiKey que você me mandou
+3. `flutter run`
 
-1. Clone o repositório.
-2. Crie uma branch para a implementação, por exemplo: `feat/gerenciador-verificacoes`.
-3. Desenvolva a solução nessa branch.
-4. Abra um Pull Request da sua branch para a branch `main`.
+## Decisões sobre persistência local
 
-O Pull Request deve conter uma descrição breve da implementação, incluindo as decisões tomadas para persistência local e sincronização offline.
+Uso o `sqflite` com uma tabela só (`verificacoes`), com uma coluna a mais que não existe na API: `sync_status`. Ela guarda se aquele registro está `synced` (igual ao que tem no servidor) ou `pendingCreate` / `pendingUpdate` / `pendingDelete` (uma alteração feita offline que ainda não foi enviada).
 
-## Objetivo
+Cheguei a pensar numa tabela separada só pra fila de sincronização, mas achei desnecessário pro tamanho desse projeto (uma entidade só). Com a coluna direto na tabela principal já dá pra saber o que está pendente sem duplicar dado em lugar nenhum.
 
-O aplicativo deverá possuir uma única tela que exibe uma lista de verificações obtidas de uma API. Também deve permitir criar, visualizar, editar e excluir verificações, com suporte a funcionamento offline.
+## Decisões sobre sincronização offline
 
-## API
+Toda vez que crio, edito ou excluo alguma verificação, salvo local primeiro (marcando como pendente) e já tento mandar pra API na hora. Se der certo, o status vira `synced`. Se não der (sem internet, erro da API, etc.), o registro fica pendente e não perde o dado — a tela continua mostrando o que já está salvo localmente.
 
-Base URL:
+Também fico escutando a conexão do aparelho (pacote `connectivity_plus`). Quando percebe que a internet voltou, o app tenta sincronizar os pendentes de novo sozinho, sem o usuário precisar fazer nada.
 
-```text
-https://gahjnpeomhmkengufdrb.supabase.co/rest/v1/teste_tecnico
-```
+Se um item pendente falhar ao sincronizar, os outros continuam tentando — não trava a fila inteira por causa de um só.
 
-A `apiKey` necessária para autenticação será enviada via WhatsApp. Todas as requisições devem incluir essa chave nos headers:
+## O que eu melhoraria com mais tempo
 
-```http
-apikey: SUA_API_KEY
-Authorization: Bearer SUA_API_KEY
-Content-Type: application/json
-```
-
-## Estrutura da verificação
-
-Cada registro possui o seguinte formato:
-
-```json
-{
-  "id": 1,
-  "created_at": "2026-08-31T21:13:49.341778+00:00",
-  "title": "teste",
-  "status": 1,
-  "motivo": null
-}
-```
-
-### Status e regras de validação
-
-Os únicos valores permitidos para `status` são:
-
-| Status | Descrição |
-|---:|---|
-| `0` | Aguardando verificação |
-| `1` | Aprovado |
-| `2` | Reprovado |
-
-Regras para o campo `motivo`:
-
-- Quando `status` for `2` (**Reprovado**), o campo `motivo` é obrigatório.
-- Quando `status` for `1` (**Aprovado**), o campo `motivo` não deve ser enviado ou deve ser `null`.
-- Para `status` `0` (**Aguardando verificação**), o motivo não é obrigatório.
-
-Essas validações devem ser aplicadas antes de salvar localmente e antes de enviar dados à API.
-
-## Requisitos funcionais
-
-- Exibir em uma única tela a lista de verificações.
-- Buscar os dados da API ao iniciar o aplicativo.
-- Implementar as operações CRUD:
-  - Criar uma verificação;
-  - Listar verificações;
-  - Editar uma verificação;
-  - Excluir uma verificação.
-- Exibir estados apropriados de carregamento, lista vazia e erro.
-- Atualizar a interface após cada operação realizada.
-
-## Gerenciamento de estado
-
-Utilize o pacote `provider` para gerenciar o estado da tela.
-
-A solução deve manter, de forma clara e organizada, os estados de lista, carregamento, erros e operações pendentes de sincronização.
-
-## Suporte offline
-
-Utilize `sqflite` para persistência local.
-
-Quando o dispositivo estiver sem conexão:
-
-- As verificações e alterações devem ser salvas localmente;
-- Criações, edições e exclusões devem ficar pendentes de sincronização;
-- A aplicação deve continuar exibindo os dados disponíveis localmente.
-
-Quando a conexão for restabelecida:
-
-- As operações pendentes devem ser enviadas para a API;
-- Após a sincronização, os dados locais devem refletir o estado mais recente da API;
-- Falhas na sincronização devem ser tratadas sem perda dos dados locais.
-
-## Comunicação com a API
-
-| Operação | Método | Endpoint |
-|---|---:|---|
-| Listar | `GET` | `/teste_tecnico` |
-| Criar | `POST` | `/teste_tecnico` |
-| Atualizar | `PATCH` | `/teste_tecnico?id=eq:{id}` |
-| Excluir | `DELETE` | `/teste_tecnico?id=eq:{id}` |
-
-Para operações de criação e atualização, envie os dados no formato JSON.
-
-## Encoding e decoding
-
-A aplicação deve tratar corretamente a conversão dos dados entre API, banco local e interface:
-
-- Decodificar respostas JSON em modelos Dart;
-- Codificar modelos Dart em JSON para envio à API;
-- Tratar corretamente campos nulos, datas em ISO 8601 e caracteres especiais;
-- Persistir e recuperar os dados do SQLite sem corrupção de encoding.
-
-## Organização esperada
-
-```text
-lib/
-├── models/
-│   └── verificacao.dart
-├── services/
-│   ├── api_service.dart
-│   └── database_service.dart
-├── providers/
-│   └── verificacao_provider.dart
-├── screens/
-│   └── verificacoes_screen.dart
-└── main.dart
-```
-
-## Critérios de avaliação
-
-- Funcionamento correto do CRUD e das regras de status;
-- Uso adequado do `provider`;
-- Persistência local com `sqflite`;
-- Sincronização de operações pendentes quando houver conexão;
-- Organização e legibilidade do código;
-- Tratamento de erros e estados da interface;
-- Qualidade na conversão de dados entre JSON, Dart e SQLite;
-- Organização do histórico de commits e clareza do Pull Request.
+- Testes automatizados pra `database_service` e `api_service` — não fiz porque exigiria trazer dependências novas (mock/fake DB) só pra isso, e preferi manter o projeto enxuto
+- Tratar conflito de verdade quando o mesmo registro muda local e no servidor ao mesmo tempo — hoje, quem sincroniza primeiro "ganha"
